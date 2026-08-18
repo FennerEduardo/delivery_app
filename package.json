@@ -1,0 +1,21 @@
+{
+  "name": "shipping-platform-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Logistics Shipping Platform Monorepo - .NET 10, Angular, AWS Target Architecture & Gherkin AI",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "test": "pnpm --filter web test",
+    "lint": "pnpm --filter web lint",
+    "ghk:detect": "npx -y gherkin-ai@2.0.0-beta.1 detect",
+    "ghk:generate": "npx -y gherkin-ai@2.0.0-beta.1 generate",
+    "ghk:validate": "npx -y gherkin-ai@2.0.0-beta.1 validate",
+    "ghk:context": "npx -y gherkin-ai@2.0.0-beta.1 context",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "gherkin-ai": "^2.0.0-beta.1"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "projectName": "delivery_app",
+  "projectMode": "monorepo",
+  "architecture": "clean-architecture",
+  "stack": {
+    "language": "csharp",
+    "framework": "dotnet10",
+    "frontend": "angular",
+    "orm": "efcore",
+    "database": "postgresql",
+    "validation": "fluentvalidation",
+    "auth": "jwt-bearer",
+    "testing": "xunit"
+  },
+  "rules": {
+    "strictLayerBoundaries": true,
+    "coverageTarget": 85
+  },
+  "outputDir": "./specs"
+}

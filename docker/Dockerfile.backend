@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy project files and restore
+COPY backend/Shipping.Domain/*.csproj backend/Shipping.Domain/
+COPY backend/Shipping.Application/*.csproj backend/Shipping.Application/
+COPY backend/Shipping.Infrastructure/*.csproj backend/Shipping.Infrastructure/
+COPY backend/Shipping.Api/*.csproj backend/Shipping.Api/
+RUN dotnet restore backend/Shipping.Api/Shipping.Api.csproj
+
+# Copy full source and publish
+COPY backend/ backend/
+RUN dotnet publish backend/Shipping.Api/Shipping.Api.csproj -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:5000
+ENTRYPOINT ["dotnet", "Shipping.Api.dll"]
