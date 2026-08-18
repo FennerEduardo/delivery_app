@@ -16,7 +16,7 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
           <div class="sidebar-logo-icon">📦</div>
           <div>
             <div>Logistics<span class="gradient-text">Pro</span></div>
-            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 400;">v2.0 Gherkin AI Monorepo</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 400;">v2.0 Gherkin AI Engine</div>
           </div>
         </div>
 
@@ -28,22 +28,22 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
           </li>
           <li class="nav-item" [class.active]="activeTab() === 'create-shipment'">
             <button (click)="activeTab.set('create-shipment')">
-              <span>⚡</span> Cotizador & Crear Envío
+              <span>⚡</span> Quote & Create Shipment
             </button>
           </li>
           <li class="nav-item" [class.active]="activeTab() === 'shipments'">
             <button (click)="activeTab.set('shipments')">
-              <span>🚚</span> Envíos & Historial
+              <span>🚚</span> Shipments & Traceability
             </button>
           </li>
           <li class="nav-item" [class.active]="activeTab() === 'customers'">
             <button (click)="activeTab.set('customers')">
-              <span>👥</span> Clientes
+              <span>👥</span> Customers
             </button>
           </li>
           <li class="nav-item" [class.active]="activeTab() === 'gherkin-docs'">
             <button (click)="activeTab.set('gherkin-docs')">
-              <span>🥒</span> Specs Gherkin & ADRs
+              <span>🥒</span> Gherkin Specs & ADRs
             </button>
           </li>
         </ul>
@@ -55,13 +55,13 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
         <!-- Header -->
         <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
           <div>
-            <h1 style="font-size: 1.8rem;">Plataforma de Cotización y Gestión de Envíos</h1>
+            <h1 style="font-size: 1.8rem;">Logistics Shipping & Quotation Platform</h1>
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
-              Sistema Demostrativo Técnico — Clean Architecture .NET 10, Angular & Gherkin AI Engine
+              Technical Interview Demonstration — Clean Architecture .NET 10, Angular & Gherkin AI Engine
             </p>
           </div>
           <button class="btn btn-primary" (click)="activeTab.set('create-shipment')">
-            + Nuevo Envío
+            + New Shipment
           </button>
         </header>
 
@@ -72,45 +72,45 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
               <div class="metric-icon metric-blue">📦</div>
               <div>
                 <div class="metric-val">{{ totalShipments() }}</div>
-                <div class="metric-lbl">Total Envíos</div>
+                <div class="metric-lbl">Total Shipments</div>
               </div>
             </div>
             <div class="card metric-card">
               <div class="metric-icon metric-amber">⏳</div>
               <div>
                 <div class="metric-val">{{ pendingShipments() }}</div>
-                <div class="metric-lbl">Cotizados / Pendientes</div>
+                <div class="metric-lbl">Quoted / Pending</div>
               </div>
             </div>
             <div class="card metric-card">
               <div class="metric-icon metric-purple">🚚</div>
               <div>
                 <div class="metric-val">{{ inTransitShipments() }}</div>
-                <div class="metric-lbl">En Tránsito</div>
+                <div class="metric-lbl">In Transit</div>
               </div>
             </div>
             <div class="card metric-card">
               <div class="metric-icon metric-emerald">✅</div>
               <div>
-                <div class="metric-val">${{ avgShippingCost() | number:'1.0-0' }}</div>
-                <div class="metric-lbl">Costo Promedio Envío</div>
+                <div class="metric-val">$ {{ avgShippingCost() | number:'1.0-0' }}</div>
+                <div class="metric-lbl">Average Shipping Cost</div>
               </div>
             </div>
           </div>
 
           <div class="card" style="margin-top: 24px;">
-            <h3 style="margin-bottom: 16px;">Envíos Recientes</h3>
+            <h3 style="margin-bottom: 16px;">Recent Shipments</h3>
             <div class="table-container">
               <table>
                 <thead>
                   <tr>
-                    <th>ID Envío</th>
-                    <th>Origen -> Destino</th>
-                    <th>Peso Real / Volumétrico</th>
-                    <th>Modalidad</th>
-                    <th>Costo Total</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
+                    <th>Shipment ID</th>
+                    <th>Origin ➔ Destination</th>
+                    <th>Actual / Volumetric Weight</th>
+                    <th>Delivery Type</th>
+                    <th>Total Cost</th>
+                    <th>Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -119,12 +119,12 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                     <td>{{ s.origin.city }} ➔ {{ s.destination.city }}</td>
                     <td>{{ s.weightKg }} kg / {{ s.quote?.volumetricWeightKg || 0 }} kg</td>
                     <td><span class="rule-pill">{{ s.deliveryType }} ({{ s.deliveryWindow }})</span></td>
-                    <td style="font-weight: 700; color: var(--accent-emerald);">${{ s.totalCost | number:'1.0-0' }} COP</td>
+                    <td style="font-weight: 700; color: var(--accent-emerald);">$ {{ s.totalCost | number:'1.0-0' }} COP</td>
                     <td>
                       <span class="badge" [ngClass]="getBadgeClass(s.status)">{{ s.status }}</span>
                     </td>
                     <td>
-                      <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" (click)="selectShipment(s)">Ver Detalle</button>
+                      <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" (click)="selectShipment(s)">View Details</button>
                     </td>
                   </tr>
                 </tbody>
@@ -136,53 +136,53 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
         <!-- TAB 2: COTIZADOR & CREAR ENVÍO -->
         <section *ngIf="activeTab() === 'create-shipment'">
           <div class="card">
-            <h2 style="margin-bottom: 8px;">Cotizador de Tarifas de Envío</h2>
+            <h2 style="margin-bottom: 8px;">Shipping Rate Calculator</h2>
             <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem;">
-              Ingrese las dimensiones, peso real, origen, destino y valor comercial para calcular el desglose detallado de la tarifa.
+              Enter package dimensions, actual weight, origin, destination, and commercial value to calculate itemized shipping cost breakdown.
             </p>
 
             <form [formGroup]="shipmentForm" (ngSubmit)="onSubmitShipment()">
               <div class="form-grid">
 
                 <div class="form-group">
-                  <label class="form-label">Cliente *</label>
+                  <label class="form-label">Customer *</label>
                   <select class="form-control" formControlName="customerId">
                     <option *ngFor="let c of apiService.customers()" [value]="c.id">{{ c.name }} ({{ c.email }})</option>
                   </select>
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Peso Real (kg) *</label>
+                  <label class="form-label">Actual Weight (kg) *</label>
                   <input type="number" class="form-control" formControlName="weightKg" (input)="onFormChange()" step="0.1">
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Largo (cm) *</label>
+                  <label class="form-label">Length (cm) *</label>
                   <input type="number" class="form-control" formControlName="lengthCm" (input)="onFormChange()">
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Ancho (cm) *</label>
+                  <label class="form-label">Width (cm) *</label>
                   <input type="number" class="form-control" formControlName="widthCm" (input)="onFormChange()">
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Alto (cm) *</label>
+                  <label class="form-label">Height (cm) *</label>
                   <input type="number" class="form-control" formControlName="heightCm" (input)="onFormChange()">
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Valor Comercial Declarado (COP) *</label>
+                  <label class="form-label">Commercial Declared Value (COP) *</label>
                   <input type="number" class="form-control" formControlName="commercialValue" (input)="onFormChange()">
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Distancia Estimada (km) *</label>
+                  <label class="form-label">Estimated Distance (km) *</label>
                   <input type="number" class="form-control" formControlName="distanceKm" (input)="onFormChange()">
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Tipo de Entrega *</label>
+                  <label class="form-label">Delivery Type *</label>
                   <select class="form-control" formControlName="deliveryType" (change)="onFormChange()">
                     <option [value]="0">Standard (0%)</option>
                     <option [value]="1">Express (+30%)</option>
@@ -191,7 +191,7 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Ventana Horaria de Entrega *</label>
+                  <label class="form-label">Time Window *</label>
                   <select class="form-control" formControlName="deliveryWindow" (change)="onFormChange()">
                     <option [value]="0">Standard (0%)</option>
                     <option [value]="1">Extended (+10%)</option>
@@ -205,12 +205,12 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
               <!-- Real-time Live Price Breakdown Explanation Box -->
               <div class="breakdown-box" *ngIf="liveQuote()">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                  <h3 style="font-size: 1.1rem; color: #60a5fa;">Desglose del Cálculo de Tarifa (Motor de Reglas)</h3>
-                  <span class="badge badge-quoted">Peso Facturable: {{ liveQuote()?.billableWeightKg }} kg</span>
+                  <h3 style="font-size: 1.1rem; color: #60a5fa;">Itemized Cost Breakdown (Rules Engine)</h3>
+                  <span class="badge badge-quoted">Billable Weight: {{ liveQuote()?.billableWeightKg }} kg</span>
                 </div>
 
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-                  Peso Real: <strong>{{ liveQuote()?.actualWeightKg }} kg</strong> | Peso Volumétrico: <strong>{{ liveQuote()?.volumetricWeightKg }} kg</strong> (Divisor 5000)
+                  Actual Weight: <strong>{{ liveQuote()?.actualWeightKg }} kg</strong> | Volumetric Weight: <strong>{{ liveQuote()?.volumetricWeightKg }} kg</strong> (Divisor 5000)
                 </div>
 
                 <div class="breakdown-row" *ngFor="let item of liveQuote()?.breakdown">
@@ -219,19 +219,19 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                     <div class="rule-pill" style="margin-top: 2px;">{{ item.ruleApplied }}</div>
                   </div>
                   <div style="font-weight: 700; color: #f8fafc;">
-                    +${{ item.amount | number:'1.0-0' }} COP
+                    +$ {{ item.amount | number:'1.0-0' }} COP
                   </div>
                 </div>
 
                 <div class="breakdown-row total">
-                  <span>TOTAL ESTIMADO ENVÍO:</span>
-                  <span>${{ liveQuote()?.total | number:'1.0-0' }} COP</span>
+                  <span>ESTIMATED TOTAL SHIPPING COST:</span>
+                  <span>$ {{ liveQuote()?.total | number:'1.0-0' }} COP</span>
                 </div>
               </div>
 
               <div style="margin-top: 24px; display: flex; gap: 12px;">
                 <button type="submit" class="btn btn-primary" [disabled]="shipmentForm.invalid">
-                  ✓ Confirmar y Registrar Envío
+                  ✓ Confirm & Register Shipment
                 </button>
               </div>
             </form>
@@ -241,22 +241,22 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
         <!-- TAB 3: ENVÍOS & HISTORIAL TIMELINE -->
         <section *ngIf="activeTab() === 'shipments'">
           <div class="card">
-            <h2>Gestión de Envíos y Trazabilidad</h2>
+            <h2>Shipment Management & Traceability</h2>
             <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">
-              Consulte el historial de cambios de estado y transiciones válidas del aggregate root `Shipment`.
+              Inspect status transition logs and domain invariants for the <code>Shipment</code> aggregate root.
             </p>
 
             <div class="table-container">
               <table>
                 <thead>
                   <tr>
-                    <th>ID Envío</th>
-                    <th>Origen -> Destino</th>
-                    <th>Cliente</th>
-                    <th>Peso Facturable</th>
-                    <th>Total</th>
-                    <th>Estado Actual</th>
-                    <th>Cambiar Estado</th>
+                    <th>Shipment ID</th>
+                    <th>Origin ➔ Destination</th>
+                    <th>Customer</th>
+                    <th>Billable Weight</th>
+                    <th>Total Cost</th>
+                    <th>Current Status</th>
+                    <th>Transition State</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -265,15 +265,15 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                     <td>{{ s.origin.city }} ➔ {{ s.destination.city }}</td>
                     <td>{{ getCustomerName(s.customerId) }}</td>
                     <td>{{ s.quote?.billableWeightKg || s.weightKg }} kg</td>
-                    <td style="font-weight: 700; color: var(--accent-emerald);">${{ s.totalCost | number:'1.0-0' }}</td>
+                    <td style="font-weight: 700; color: var(--accent-emerald);">$ {{ s.totalCost | number:'1.0-0' }}</td>
                     <td><span class="badge" [ngClass]="getBadgeClass(s.status)">{{ s.status }}</span></td>
                     <td>
                       <select class="form-control" style="padding: 4px 8px; font-size: 0.8rem;" (change)="onStatusChange(s.id, $event)">
-                        <option value="">-- Transición --</option>
-                        <option value="Confirmed" *ngIf="s.status === 'Quoted'">Confirmar</option>
-                        <option value="InTransit" *ngIf="s.status === 'Confirmed'">En Tránsito</option>
-                        <option value="Delivered" *ngIf="s.status === 'InTransit'">Entregado</option>
-                        <option value="Cancelled" *ngIf="s.status !== 'Delivered' && s.status !== 'Cancelled'">Cancelar</option>
+                        <option value="">-- Change Status --</option>
+                        <option value="Confirmed" *ngIf="s.status === 'Quoted'">Confirm</option>
+                        <option value="InTransit" *ngIf="s.status === 'Confirmed'">In Transit</option>
+                        <option value="Delivered" *ngIf="s.status === 'InTransit'">Delivered</option>
+                        <option value="Cancelled" *ngIf="s.status !== 'Delivered' && s.status !== 'Cancelled'">Cancel</option>
                       </select>
                     </td>
                   </tr>
@@ -284,12 +284,12 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
             <!-- Detail Modal / Drawer -->
             <div *ngIf="selectedShipment()" class="breakdown-box" style="margin-top: 32px; background: rgba(18, 24, 38, 0.95);">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Detalle y Timeline de Trazabilidad: {{ selectedShipment()?.id }}</h3>
-                <button class="btn btn-secondary" style="padding: 4px 10px;" (click)="selectedShipment.set(null)">✕ Cerrar</button>
+                <h3>Traceability Timeline & Details: {{ selectedShipment()?.id }}</h3>
+                <button class="btn btn-secondary" style="padding: 4px 10px;" (click)="selectedShipment.set(null)">✕ Close</button>
               </div>
 
               <div style="margin-top: 16px;">
-                <h4 style="color: var(--accent-cyan); margin-bottom: 8px;">Timeline de Cambios de Estado:</h4>
+                <h4 style="color: var(--accent-cyan); margin-bottom: 8px;">Status Change Timeline:</h4>
                 <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
                   <div *ngFor="let h of selectedShipment()?.history" style="padding: 10px; background: rgba(255,255,255,0.03); border-left: 3px solid var(--accent-primary); border-radius: 4px;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
@@ -307,17 +307,17 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
         <!-- TAB 4: CLIENTES -->
         <section *ngIf="activeTab() === 'customers'">
           <div class="card">
-            <h2>Registro y Consulta de Clientes</h2>
+            <h2>Customer Registry</h2>
             <div class="table-container" style="margin-top: 16px;">
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Nombre / Razón Social</th>
+                    <th>Customer ID</th>
+                    <th>Name / Company</th>
                     <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>Ciudad Base</th>
-                    <th>Fecha Registro</th>
+                    <th>Phone</th>
+                    <th>City / Country</th>
+                    <th>Registered At</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -338,9 +338,9 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
         <!-- TAB 5: SPECS GHERKIN & ADRS -->
         <section *ngIf="activeTab() === 'gherkin-docs'">
           <div class="card">
-            <h2>🥒 Specs Gherkin BDD (`gherkin-ai` v2.0.0-beta.1)</h2>
+            <h2>🥒 Gherkin BDD Specifications (gherkin-ai v2.0.0-beta.1)</h2>
             <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">
-              Especificaciones de negocio ejecutables procesadas mediante el motor de orquestación de agentes <code>gherkin-ai</code>.
+              Executable business specifications orchestrated by <strong>gherkin-ai</strong> engine (<a href="https://fennereduardo.com/pages/GherkinIATool/" target="_blank" style="color: var(--accent-cyan);">fennereduardo.com</a>).
             </p>
 
             <div class="breakdown-box" style="font-family: monospace; font-size: 0.85rem; line-height: 1.5; color: #a78bfa;">
@@ -455,7 +455,7 @@ export class AppComponent {
     const target = event.target as HTMLSelectElement;
     if (!target.value) return;
 
-    this.apiService.updateStatus(shipmentId, target.value, `Estado actualizado manualmente a ${target.value}`);
+    this.apiService.updateStatus(shipmentId, target.value, `Status manually updated to ${target.value}`);
     target.value = '';
   }
 
