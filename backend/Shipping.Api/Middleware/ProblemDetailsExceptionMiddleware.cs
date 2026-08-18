@@ -72,7 +72,7 @@ public class ProblemDetailsExceptionMiddleware
             }
         };
 
-        context.Response.StatusCode = problemDetails.Status.Value;
+        context.Response.StatusCode = problemDetails.Status ?? (int)HttpStatusCode.InternalServerError;
         return context.Response.WriteAsJsonAsync(problemDetails);
     }
 }

@@ -4,7 +4,7 @@
   "architecture": "clean-architecture",
   "stack": {
     "language": "csharp",
-    "framework": "dotnet10",
+    "framework": "dotnet9",
     "frontend": "angular",
     "orm": "efcore",
     "database": "postgresql",

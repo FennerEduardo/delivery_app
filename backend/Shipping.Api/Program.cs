@@ -4,6 +4,7 @@ using Serilog;
 using Shipping.Api.Middleware;
 using Shipping.Application.Commands;
 using Shipping.Application.Interfaces;
+using Shipping.Application.Validators;
 using Shipping.Domain.Services.Pricing;
 using Shipping.Infrastructure.Persistence;
 using Shipping.Infrastructure.Repositories;
@@ -51,7 +52,7 @@ builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
 
 // Register MediatR & FluentValidation
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateCustomerCommand).Assembly));
-builder.Services.AddValidatorsFromAssembly(typeof(CreateCustomerCommandValidator).Assembly);
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCustomerCommandValidator>();
 
 // Health Checks
 builder.Services.AddHealthChecks();
