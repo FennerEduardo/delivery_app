@@ -80,9 +80,8 @@ public class ShipmentsApiIntegrationTests : IClassFixture<CustomWebApplicationFa
         var response = await _client.PostAsJsonAsync("/api/customers", command);
 
         // Assert
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.InternalServerError,
+        response.StatusCode.Should().Match(
+            s => s == HttpStatusCode.BadRequest || s == HttpStatusCode.InternalServerError,
             "because empty customer name should be rejected by validation");
     }
 

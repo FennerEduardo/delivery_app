@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CustomerDto, ShipmentDto, ShippingQuote } from '../models/shipping.models';
@@ -7,9 +7,8 @@ import { CustomerDto, ShipmentDto, ShippingQuote } from '../models/shipping.mode
   providedIn: 'root'
 })
 export class ShippingApiService {
+  private readonly http = inject(HttpClient);
   private readonly baseUrl = 'http://localhost:5000/api';
-
-  constructor(private http: HttpClient) {}
 
   getCustomers(): Observable<CustomerDto[]> {
     return this.http.get<CustomerDto[]>(`${this.baseUrl}/customers`);
