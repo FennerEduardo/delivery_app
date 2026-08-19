@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shipping.Domain.Entities;
 using Shipping.Domain.ValueObjects;
 using Shipping.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shipping.IntegrationTests;
 
