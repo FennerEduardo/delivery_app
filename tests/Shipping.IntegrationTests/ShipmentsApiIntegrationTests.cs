@@ -1,17 +1,16 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Shipping.Application.DTOs;
 using Xunit;
 
 namespace Shipping.IntegrationTests;
 
-public class ShipmentsApiIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class ShipmentsApiIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public ShipmentsApiIntegrationTests(WebApplicationFactory<Program> factory)
+    public ShipmentsApiIntegrationTests(CustomWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }
