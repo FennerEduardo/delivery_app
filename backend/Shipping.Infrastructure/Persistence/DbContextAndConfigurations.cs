@@ -116,6 +116,7 @@ public class ShippingDbContext : DbContext
         modelBuilder.Entity<ShipmentStatusHistory>(b =>
         {
             b.HasKey(h => h.Id);
+            b.Property(h => h.Id).ValueGeneratedNever();
             b.Property(h => h.Comment).HasMaxLength(500);
         });
     }

@@ -15,7 +15,18 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // Build an intermediate service provider to seed data after EnsureCreated
+            // Use a unique DB name for isolated test runs
+            var dbName = $"ShippingDb_{Guid.NewGuid()}";
+            
+            // Remove existing DbContext registration
+            var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ShippingDbContext>));
+            if (descriptor != null) services.Remove(descriptor);
+            
+            services.AddDbContext<ShippingDbContext>(options =>
+            {
+                options.UseInMemoryDatabase(dbName);
+            });
+
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ShippingDbContext>();
