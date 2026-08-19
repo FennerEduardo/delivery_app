@@ -67,7 +67,7 @@ public class ProblemDetailsExceptionMiddleware
             {
                 Status = (int)HttpStatusCode.InternalServerError,
                 Title = "Internal Server Error",
-                Detail = "An unexpected error occurred on the server.",
+                Detail = $"An unexpected error occurred on the server. {exception.Message}",
                 Type = "https://example.com/errors/internal-server-error"
             }
         };

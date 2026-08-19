@@ -40,7 +40,10 @@ public class ShippingDbContext : DbContext
         modelBuilder.Entity<Shipment>(b =>
         {
             b.HasKey(s => s.Id);
-            b.Property(s => s.RowVersion).IsRowVersion(); // Optimistic Concurrency
+            if (this.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+            {
+                b.Property(s => s.RowVersion).IsRowVersion(); // Optimistic Concurrency
+            }
 
             b.OwnsOne(s => s.Origin, a =>
             {
@@ -102,10 +105,12 @@ public class ShippingDbContext : DbContext
                     v => string.IsNullOrEmpty(v) ? null : JsonSerializer.Deserialize<ShippingQuote>(v, (JsonSerializerOptions?)null)
                 );
 
-            b.HasMany(s => s.StatusHistory)
+            var historyNavigation = b.HasMany(s => s.StatusHistory)
                 .WithOne()
                 .HasForeignKey(h => h.ShipmentId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+            historyNavigation.Metadata.PrincipalToDependent!.SetPropertyAccessMode(PropertyAccessMode.Field);
         });
 
         modelBuilder.Entity<ShipmentStatusHistory>(b =>

@@ -27,7 +27,7 @@ public class Shipment
     public DateTime UpdatedAt { get; private set; }
 
     private readonly List<ShipmentStatusHistory> _statusHistory = new();
-    public IReadOnlyCollection<ShipmentStatusHistory> StatusHistory => _statusHistory.AsReadOnly();
+    public IReadOnlyCollection<ShipmentStatusHistory> StatusHistory => _statusHistory;
 
     private Shipment() { } // EF Core
 

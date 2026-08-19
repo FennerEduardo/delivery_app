@@ -74,7 +74,10 @@ public class ShipmentRepository : IShipmentRepository
 
     public async Task UpdateAsync(Shipment shipment, CancellationToken ct = default)
     {
-        _context.Shipments.Update(shipment);
+        if (_context.Entry(shipment).State == EntityState.Detached)
+        {
+            _context.Shipments.Update(shipment);
+        }
         await _context.SaveChangesAsync(ct);
     }
 }

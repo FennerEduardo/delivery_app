@@ -144,11 +144,11 @@ public class ShipmentsApiIntegrationTests : IClassFixture<CustomWebApplicationFa
         var response = await _client.PostAsJsonAsync("/api/shipments", shipmentCmd);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.StatusCode.Should().Be(HttpStatusCode.Created, $"because response should be Created, but got: {await response.Content.ReadAsStringAsync()}");
         var shipment = await response.Content.ReadFromJsonAsync<ShipmentDto>();
         shipment.Should().NotBeNull();
         shipment!.Id.Should().NotBeEmpty();
-        shipment.Status.Should().Be("Created");
+        shipment.Status.Should().Be("Quoted", "because creating a shipment automatically generates a quote");
         shipment.WeightKg.Should().Be(3.0m);
     }
 
@@ -194,7 +194,7 @@ public class ShipmentsApiIntegrationTests : IClassFixture<CustomWebApplicationFa
 
         // Act 2 — Confirm Shipment: status should become "Confirmed"
         var confirmRes = await _client.PostAsync($"/api/shipments/{shipmentId}/confirm", null);
-        confirmRes.StatusCode.Should().Be(HttpStatusCode.OK);
+        confirmRes.StatusCode.Should().Be(HttpStatusCode.OK, $"because response should be OK, but got: {await confirmRes.Content.ReadAsStringAsync()}");
 
         var getRes2 = await _client.GetAsync($"/api/shipments/{shipmentId}");
         var afterConfirm = await getRes2.Content.ReadFromJsonAsync<ShipmentDto>();
@@ -252,7 +252,7 @@ public class ShipmentsApiIntegrationTests : IClassFixture<CustomWebApplicationFa
             new { Reason = "Changed mind" });
 
         // Assert
-        cancelRes.StatusCode.Should().Be(HttpStatusCode.OK);
+        cancelRes.StatusCode.Should().Be(HttpStatusCode.OK, $"because response should be OK, but got: {await cancelRes.Content.ReadAsStringAsync()}");
         var getRes = await _client.GetAsync($"/api/shipments/{shipmentId}");
         var cancelled = await getRes.Content.ReadFromJsonAsync<ShipmentDto>();
         cancelled!.Status.Should().Be("Cancelled");
