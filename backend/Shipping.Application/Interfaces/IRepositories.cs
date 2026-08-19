@@ -5,6 +5,7 @@ namespace Shipping.Application.Interfaces;
 public interface ICustomerRepository
 {
     Task<Customer?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<Customer>> GetAllAsync(int skip = 0, int take = 50, CancellationToken ct = default);
     Task AddAsync(Customer customer, CancellationToken ct = default);
     Task<bool> ExistsAsync(Guid id, CancellationToken ct = default);
 }

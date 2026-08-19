@@ -8,6 +8,5 @@ Objective: Implement automated tests (Unit, Integration, BDD) using xunit (jest@
 1. Unit tests for Domain Core with >= 85% branch coverage.
 2. Integration tests for Repository adapters and API controllers.
 3. Automated BDD step definitions matching Gherkin scenarios:
-   * Calculate standard shipping quote for lightweight item
-   * Calculate quote where volumetric weight exceeds actual weight
-   * Calculate express delivery with weekend surcharge
+   * Successful login with valid credentials
+   * Rejected login with wrong password

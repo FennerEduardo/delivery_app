@@ -12,11 +12,14 @@ public record GetShipmentHistoryQuery(Guid ShipmentId) : IRequest<IReadOnlyList<
 
 public record GetCustomerByIdQuery(Guid Id) : IRequest<CustomerDto?>;
 
+public record GetCustomersQuery(int Skip = 0, int Take = 50) : IRequest<IReadOnlyList<CustomerDto>>;
+
 public class QueryHandlers :
     IRequestHandler<GetShipmentByIdQuery, ShipmentDto?>,
     IRequestHandler<GetShipmentsQuery, IReadOnlyList<ShipmentDto>>,
     IRequestHandler<GetShipmentHistoryQuery, IReadOnlyList<ShipmentStatusHistoryDto>>,
-    IRequestHandler<GetCustomerByIdQuery, CustomerDto?>
+    IRequestHandler<GetCustomerByIdQuery, CustomerDto?>,
+    IRequestHandler<GetCustomersQuery, IReadOnlyList<CustomerDto>>
 {
     private readonly IShipmentRepository _shipmentRepository;
     private readonly ICustomerRepository _customerRepository;
@@ -54,6 +57,13 @@ public class QueryHandlers :
 
         return new CustomerDto(c.Id, c.Name, c.Email, c.Phone,
             new AddressDto(c.Address.Street, c.Address.City, c.Address.State, c.Address.ZipCode, c.Address.Country), c.CreatedAt);
+    }
+
+    public async Task<IReadOnlyList<CustomerDto>> Handle(GetCustomersQuery request, CancellationToken cancellationToken)
+    {
+        var customers = await _customerRepository.GetAllAsync(request.Skip, request.Take, cancellationToken);
+        return customers.Select(c => new CustomerDto(c.Id, c.Name, c.Email, c.Phone,
+            new AddressDto(c.Address.Street, c.Address.City, c.Address.State, c.Address.ZipCode, c.Address.Country), c.CreatedAt)).ToList();
     }
 
     private static ShipmentDto MapToDto(Domain.Entities.Shipment s)

@@ -1,4 +1,4 @@
-# ADR 001: Architecture Decisions for Shipping Quote Calculation
+# ADR 001: Architecture Decisions for User Authentication & Token Issuance
 
 ## Status
 Accepted
@@ -9,7 +9,7 @@ Project requiring structured implementation matching Gherkin specification.
 ## Decisions
 - **Architecture Style**: Hexagonal Architecture (Ports & Adapters) (hexagonal)
 - **Primary Language**: csharp
-- **Framework**: dotnet10 (^10.3.0)
+- **Framework**: dotnet9 (^10.3.0)
 - **ORM / Persistence**: efcore (@prisma/client@^5.10.0)
 - **Validation**: fluentvalidation (zod@^3.22.4)
 - **Authentication**: jwt-bearer (bcrypt cost factor 12, JWT TTL 3600s)

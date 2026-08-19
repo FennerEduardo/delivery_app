@@ -1,15 +1,15 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Shipping Quote Calculation API Specification",
+    "title": "User Authentication & Token Issuance API Specification",
     "version": "1.0.0",
-    "description": "Auto-generated OpenAPI specification for Shipping Quote Calculation from Gherkin feature spec."
+    "description": "Auto-generated OpenAPI specification for User Authentication & Token Issuance from Gherkin feature spec."
   },
   "paths": {
-    "/api/v1/shippingquotecalculation": {
+    "/api/v1/userauthenticationtokenissuance": {
       "post": {
-        "summary": "Execute Shipping Quote Calculation Command",
-        "operationId": "executeShippingQuoteCalculation",
+        "summary": "Execute User Authentication & Token Issuance Command",
+        "operationId": "executeUserAuthenticationTokenIssuance",
         "requestBody": {
           "required": true,
           "content": {

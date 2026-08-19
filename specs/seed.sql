@@ -1,5 +1,5 @@
 -- Generated Seed SQL Fixtures for PostgreSQL / MySQL
--- Feature: Shipping Quote Calculation
+-- Feature: User Authentication & Token Issuance
 
 INSERT INTO users (id, email, password_hash, role, is_active, created_at)
 VALUES (

@@ -17,6 +17,14 @@ public class CustomersController : ControllerBase
         _mediator = mediator;
     }
 
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<CustomerDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCustomers([FromQuery] int skip = 0, [FromQuery] int take = 50)
+    {
+        var customers = await _mediator.Send(new GetCustomersQuery(skip, take));
+        return Ok(customers);
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(CustomerDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

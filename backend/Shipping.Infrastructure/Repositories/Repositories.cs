@@ -19,6 +19,15 @@ public class CustomerRepository : ICustomerRepository
         return await _context.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
     }
 
+    public async Task<IReadOnlyList<Customer>> GetAllAsync(int skip = 0, int take = 50, CancellationToken ct = default)
+    {
+        return await _context.Customers
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
+    }
+
     public async Task AddAsync(Customer customer, CancellationToken ct = default)
     {
         await _context.Customers.AddAsync(customer, ct);
