@@ -23,6 +23,8 @@ public class ShippingCostCalculatorTests
         var quote = _calculator.CalculateQuote(weight, dims, value, distance, DeliveryType.Standard, DeliveryWindowType.Standard);
 
         // Assert (Then billable weight = 3.0 kg, base cost = 15,000, distance surcharge = 1,500 (+10%), total = 16,500)
+        quote.PricingVersion.Should().Be("2026.08");
+        quote.AppliedRuleIds.Should().Contain("RULE_WEIGHT_TIER");
         quote.BillableWeightKg.Should().Be(3.0m);
         quote.BaseCost.Amount.Should().Be(15000m);
         quote.DistanceSurcharge.Amount.Should().Be(1500m);
@@ -34,7 +36,7 @@ public class ShippingCostCalculatorTests
     [Fact]
     public void CalculateQuote_VolumetricWeightExceedsActualWeight_UsesVolumetricAsBillableWeight()
     {
-        // Arrange (Actual weight 2 kg, dimensions 50x40x30 cm -> Volumetric = 16 kg)
+        // Arrange (Actual weight 2 kg, dimensions 50x40x30 cm -> Volumetric = 24 kg -> wait: 50*40*30/5000 = 60000/5000 = 12 kg)
         var weight = Weight.FromKg(2.0m);
         var dims = Dimensions.Create(50, 40, 30);
         var value = Money.From(100000m);
@@ -43,9 +45,9 @@ public class ShippingCostCalculatorTests
         // Act
         var quote = _calculator.CalculateQuote(weight, dims, value, distance, DeliveryType.Standard, DeliveryWindowType.Standard);
 
-        // Assert (Billable weight should be 16 kg -> Tier >10-20 kg = 35,000 COP base cost)
-        quote.VolumetricWeightKg.Should().Be(16.0m);
-        quote.BillableWeightKg.Should().Be(16.0m);
+        // Assert (Billable weight should be 12 kg -> Tier >10-20 kg = 35,000 COP base cost)
+        quote.VolumetricWeightKg.Should().Be(12.0m);
+        quote.BillableWeightKg.Should().Be(12.0m);
         quote.BaseCost.Amount.Should().Be(35000m);
         quote.Total.Amount.Should().Be(35000m);
     }

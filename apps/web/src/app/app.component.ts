@@ -1,13 +1,15 @@
+import '@angular/compiler';
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ShippingApiService } from './services/shipping-api.service';
-import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.models';
+import { ShippingApiService } from './core/services/shipping-api.service';
+import { CustomerDto, ShipmentDto, ShippingQuote } from './core/models/shipping.models';
+import { CopCurrencyPipe } from './shared/pipes/cop-currency.pipe';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CopCurrencyPipe],
   template: `
     <div class="app-container">
       <!-- Sidebar Navigation -->
@@ -57,7 +59,7 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
           <div>
             <h1 style="font-size: 1.8rem;">Logistics Shipping & Quotation Platform</h1>
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
-              Technical Interview Demonstration — Clean Architecture .NET 10, Angular & Gherkin AI Engine
+              Technical Interview Case Study — Clean Architecture .NET 10, Stand-Alone Angular & Gherkin AI Engine
             </p>
           </div>
           <button class="btn btn-primary" (click)="activeTab.set('create-shipment')">
@@ -92,7 +94,7 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
             <div class="card metric-card">
               <div class="metric-icon metric-emerald">✅</div>
               <div>
-                <div class="metric-val">$ {{ avgShippingCost() | number:'1.0-0' }}</div>
+                <div class="metric-val">{{ avgShippingCost() | copCurrency }}</div>
                 <div class="metric-lbl">Average Shipping Cost</div>
               </div>
             </div>
@@ -114,12 +116,12 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let s of apiService.shipments()">
-                    <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">{{ s.id }}</td>
-                    <td>{{ s.origin.city }} ➔ {{ s.destination.city }}</td>
-                    <td>{{ s.weightKg }} kg / {{ s.quote?.volumetricWeightKg || 0 }} kg</td>
+                  <tr *ngFor="let s of shipmentsList()">
+                    <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">{{ s.trackingNumber || s.id }}</td>
+                    <td>{{ s.originCity }} ➔ {{ s.destinationCity }}</td>
+                    <td>{{ s.weightKg }} kg</td>
                     <td><span class="rule-pill">{{ s.deliveryType }} ({{ s.deliveryWindow }})</span></td>
-                    <td style="font-weight: 700; color: var(--accent-emerald);">$ {{ s.totalCost | number:'1.0-0' }} COP</td>
+                    <td style="font-weight: 700; color: var(--accent-emerald);">{{ s.quotedPrice | copCurrency }}</td>
                     <td>
                       <span class="badge" [ngClass]="getBadgeClass(s.status)">{{ s.status }}</span>
                     </td>
@@ -147,7 +149,7 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                 <div class="form-group">
                   <label class="form-label">Customer *</label>
                   <select class="form-control" formControlName="customerId">
-                    <option *ngFor="let c of apiService.customers()" [value]="c.id">{{ c.name }} ({{ c.email }})</option>
+                    <option *ngFor="let c of customersList()" [value]="c.id">{{ c.fullName }} ({{ c.email }})</option>
                   </select>
                 </div>
 
@@ -210,22 +212,22 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                 </div>
 
                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-                  Actual Weight: <strong>{{ liveQuote()?.actualWeightKg }} kg</strong> | Volumetric Weight: <strong>{{ liveQuote()?.volumetricWeightKg }} kg</strong> (Divisor 5000)
+                  Pricing Version: <strong>{{ liveQuote()?.pricingVersion || '2026.08' }}</strong> | Actual Weight: <strong>{{ liveQuote()?.actualWeightKg }} kg</strong> | Volumetric Weight: <strong>{{ liveQuote()?.volumetricWeightKg }} kg</strong> (Divisor 5000)
                 </div>
 
-                <div class="breakdown-row" *ngFor="let item of liveQuote()?.breakdown">
+                <div class="breakdown-row" *ngFor="let item of liveQuote()?.breakdownComponents">
                   <div>
                     <strong>{{ item.description }}</strong>
                     <div class="rule-pill" style="margin-top: 2px;">{{ item.ruleApplied }}</div>
                   </div>
                   <div style="font-weight: 700; color: #f8fafc;">
-                    +$ {{ item.amount | number:'1.0-0' }} COP
+                    +{{ item.amount | copCurrency }}
                   </div>
                 </div>
 
                 <div class="breakdown-row total">
                   <span>ESTIMATED TOTAL SHIPPING COST:</span>
-                  <span>$ {{ liveQuote()?.total | number:'1.0-0' }} COP</span>
+                  <span>{{ liveQuote()?.total?.amount | copCurrency }}</span>
                 </div>
               </div>
 
@@ -253,24 +255,24 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                     <th>Shipment ID</th>
                     <th>Origin ➔ Destination</th>
                     <th>Customer</th>
-                    <th>Billable Weight</th>
+                    <th>Weight</th>
                     <th>Total Cost</th>
                     <th>Current Status</th>
                     <th>Transition State</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let s of apiService.shipments()">
-                    <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">{{ s.id }}</td>
-                    <td>{{ s.origin.city }} ➔ {{ s.destination.city }}</td>
-                    <td>{{ getCustomerName(s.customerId) }}</td>
-                    <td>{{ s.quote?.billableWeightKg || s.weightKg }} kg</td>
-                    <td style="font-weight: 700; color: var(--accent-emerald);">$ {{ s.totalCost | number:'1.0-0' }}</td>
+                  <tr *ngFor="let s of shipmentsList()">
+                    <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">{{ s.trackingNumber || s.id }}</td>
+                    <td>{{ s.originCity }} ➔ {{ s.destinationCity }}</td>
+                    <td>{{ s.customerName }}</td>
+                    <td>{{ s.weightKg }} kg</td>
+                    <td style="font-weight: 700; color: var(--accent-emerald);">{{ s.quotedPrice | copCurrency }}</td>
                     <td><span class="badge" [ngClass]="getBadgeClass(s.status)">{{ s.status }}</span></td>
                     <td>
                       <select class="form-control" style="padding: 4px 8px; font-size: 0.8rem;" (change)="onStatusChange(s.id, $event)">
                         <option value="">-- Change Status --</option>
-                        <option value="Confirmed" *ngIf="s.status === 'Quoted'">Confirm</option>
+                        <option value="Confirmed" *ngIf="s.status === 'Quoted' || s.status === 'Created'">Confirm</option>
                         <option value="InTransit" *ngIf="s.status === 'Confirmed'">In Transit</option>
                         <option value="Delivered" *ngIf="s.status === 'InTransit'">Delivered</option>
                         <option value="Cancelled" *ngIf="s.status !== 'Delivered' && s.status !== 'Cancelled'">Cancel</option>
@@ -284,19 +286,19 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
             <!-- Detail Modal / Drawer -->
             <div *ngIf="selectedShipment()" class="breakdown-box" style="margin-top: 32px; background: rgba(18, 24, 38, 0.95);">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>Traceability Timeline & Details: {{ selectedShipment()?.id }}</h3>
+                <h3>Traceability Timeline & Details: {{ selectedShipment()?.trackingNumber || selectedShipment()?.id }}</h3>
                 <button class="btn btn-secondary" style="padding: 4px 10px;" (click)="selectedShipment.set(null)">✕ Close</button>
               </div>
 
               <div style="margin-top: 16px;">
                 <h4 style="color: var(--accent-cyan); margin-bottom: 8px;">Status Change Timeline:</h4>
                 <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
-                  <div *ngFor="let h of selectedShipment()?.history" style="padding: 10px; background: rgba(255,255,255,0.03); border-left: 3px solid var(--accent-primary); border-radius: 4px;">
+                  <div *ngFor="let h of selectedShipment()?.statusHistory" style="padding: 10px; background: rgba(255,255,255,0.03); border-left: 3px solid var(--accent-primary); border-radius: 4px;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-                      <strong>{{ h.previousStatus }} ➔ {{ h.newStatus }}</strong>
-                      <span style="color: var(--text-dim);">{{ h.changedAt | date:'medium' }}</span>
+                      <strong>State: {{ h.status }}</strong>
+                      <span style="color: var(--text-dim);">{{ h.timestamp | date:'medium' }}</span>
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">{{ h.comment }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">{{ h.notes }}</div>
                   </div>
                 </div>
               </div>
@@ -321,12 +323,12 @@ import { Shipment, ShippingQuote } from '../../../libs/frontend/models/shipping.
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let c of apiService.customers()">
+                  <tr *ngFor="let c of customersList()">
                     <td style="font-family: monospace; font-weight: 700; color: var(--accent-purple);">{{ c.id }}</td>
-                    <td style="font-weight: 600;">{{ c.name }}</td>
+                    <td style="font-weight: 600;">{{ c.fullName }}</td>
                     <td>{{ c.email }}</td>
-                    <td>{{ c.phone }}</td>
-                    <td>{{ c.address.city }}, {{ c.address.country }}</td>
+                    <td>{{ c.phoneNumber }}</td>
+                    <td>{{ c.city }}, {{ c.country }}</td>
                     <td style="color: var(--text-dim); font-size: 0.85rem;">{{ c.createdAt | date:'shortDate' }}</td>
                   </tr>
                 </tbody>
@@ -374,17 +376,76 @@ export class AppComponent {
   fb = inject(FormBuilder);
 
   activeTab = signal<'dashboard' | 'create-shipment' | 'shipments' | 'customers' | 'gherkin-docs'>('dashboard');
-  selectedShipment = signal<Shipment | null>(null);
+  selectedShipment = signal<ShipmentDto | null>(null);
+
+  customersList = signal<CustomerDto[]>([
+    {
+      id: 'cust-101',
+      fullName: 'Empresa Logística Alfa',
+      companyName: 'Alfa Cargo S.A.S.',
+      email: 'logistica@alfa.com.co',
+      phoneNumber: '+57 300 123 4567',
+      street: 'Calle 26 # 68-90',
+      city: 'Bogotá',
+      state: 'Cundinamarca',
+      zipCode: '110911',
+      country: 'Colombia',
+      isVIP: true,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'cust-102',
+      fullName: 'Distribuidora Medellín Express',
+      companyName: 'Medellín Express',
+      email: 'operaciones@medellinexpress.com',
+      phoneNumber: '+57 310 987 6543',
+      street: 'Carrera 43A # 1-50',
+      city: 'Medellín',
+      state: 'Antioquia',
+      zipCode: '050021',
+      country: 'Colombia',
+      isVIP: false,
+      createdAt: new Date().toISOString()
+    }
+  ]);
+
+  shipmentsList = signal<ShipmentDto[]>([
+    {
+      id: 'ship-801',
+      trackingNumber: 'TRK-BOG-MDE-801',
+      customerId: 'cust-101',
+      customerName: 'Empresa Logística Alfa',
+      originCity: 'Bogotá',
+      destinationCity: 'Medellín',
+      weightKg: 4.5,
+      lengthCm: 30,
+      widthCm: 25,
+      heightCm: 20,
+      commercialValue: 1200000,
+      distanceKm: 420,
+      deliveryType: 'Express',
+      deliveryWindow: 'Standard',
+      status: 'InTransit',
+      quotedPrice: 38350,
+      pricingVersion: '2026.08',
+      createdAt: new Date().toISOString(),
+      statusHistory: [
+        { id: 'h-1', status: 'Quoted', notes: 'Quote calculated via rules engine v2026.08', changedBy: 'System', timestamp: new Date().toISOString() },
+        { id: 'h-2', status: 'Confirmed', notes: 'Payment confirmed and label printed', changedBy: 'Operator', timestamp: new Date().toISOString() },
+        { id: 'h-3', status: 'InTransit', notes: 'Package dispatched on truck #402', changedBy: 'Driver', timestamp: new Date().toISOString() }
+      ]
+    }
+  ]);
 
   liveQuote = signal<ShippingQuote | null>(null);
 
-  totalShipments = computed(() => this.apiService.shipments().length);
-  pendingShipments = computed(() => this.apiService.shipments().filter(s => s.status === 'Created' || s.status === 'Quoted').length);
-  inTransitShipments = computed(() => this.apiService.shipments().filter(s => s.status === 'InTransit').length);
+  totalShipments = computed(() => this.shipmentsList().length);
+  pendingShipments = computed(() => this.shipmentsList().filter(s => s.status === 'Quoted' || s.status === 'Created').length);
+  inTransitShipments = computed(() => this.shipmentsList().filter(s => s.status === 'InTransit').length);
   avgShippingCost = computed(() => {
-    const list = this.apiService.shipments();
+    const list = this.shipmentsList();
     if (!list.length) return 0;
-    return list.reduce((acc, s) => acc + s.totalCost, 0) / list.length;
+    return list.reduce((acc, s) => acc + s.quotedPrice, 0) / list.length;
   });
 
   shipmentForm = this.fb.group({
@@ -411,62 +472,138 @@ export class AppComponent {
     if (this.shipmentForm.invalid) return;
     const v = this.shipmentForm.value;
 
-    const delTypeMap = ['Standard', 'Express', 'SameDay'] as const;
-    const delWinMap = ['Standard', 'Extended', 'Night', 'Weekend'] as const;
+    // Local rules evaluation for immediate UI response
+    const actualKg = Number(v.weightKg || 1);
+    const volKg = (Number(v.lengthCm || 10) * Number(v.widthCm || 10) * Number(v.heightCm || 10)) / 5000;
+    const billableKg = Math.max(actualKg, volKg);
 
-    const q = this.apiService.calculateQuoteLocal(
-      Number(v.weightKg || 1),
-      Number(v.lengthCm || 10),
-      Number(v.widthCm || 10),
-      Number(v.heightCm || 10),
-      Number(v.commercialValue || 0),
-      Number(v.distanceKm || 0),
-      delTypeMap[Number(v.deliveryType || 0)],
-      delWinMap[Number(v.deliveryWindow || 0)]
-    );
+    let baseCost = 15000;
+    if (billableKg <= 2) baseCost = 10000;
+    else if (billableKg <= 5) baseCost = 15000;
+    else if (billableKg <= 10) baseCost = 22000;
+    else if (billableKg <= 20) baseCost = 35000;
+    else baseCost = 35000 + Math.ceil(billableKg - 20) * 2000;
 
-    this.liveQuote.set(q);
+    const distKm = Number(v.distanceKm || 0);
+    let distPct = 0;
+    if (distKm > 150) distPct = 0.50;
+    else if (distKm > 80) distPct = 0.35;
+    else if (distKm > 30) distPct = 0.20;
+    else if (distKm > 10) distPct = 0.10;
+
+    const distAmount = baseCost * distPct;
+
+    const val = Number(v.commercialValue || 0);
+    let valPct = 0;
+    if (val > 5000000) valPct = 0.03;
+    else if (val > 2000000) valPct = 0.02;
+    else if (val > 50000) valPct = 0.01;
+
+    const valAmount = baseCost * valPct;
+
+    const subtotal = baseCost + distAmount + valAmount;
+
+    const delType = Number(v.deliveryType || 0);
+    const delPct = delType === 2 ? 0.60 : (delType === 1 ? 0.30 : 0);
+    const delAmount = subtotal * delPct;
+
+    const winType = Number(v.deliveryWindow || 0);
+    const winPct = winType === 3 ? 0.25 : (winType === 2 ? 0.20 : (winType === 1 ? 0.10 : 0));
+    const winAmount = subtotal * winPct;
+
+    const total = subtotal + delAmount + winAmount;
+
+    this.liveQuote.set({
+      pricingVersion: '2026.08',
+      quotedAt: new Date().toISOString(),
+      actualWeightKg: actualKg,
+      volumetricWeightKg: Math.round(volKg * 100) / 100,
+      billableWeightKg: Math.round(billableKg * 100) / 100,
+      baseCost: { amount: baseCost, currency: 'COP' },
+      weightSurcharge: { amount: 0, currency: 'COP' },
+      distanceSurcharge: { amount: distAmount, currency: 'COP' },
+      commercialValueSurcharge: { amount: valAmount, currency: 'COP' },
+      deliveryTypeSurcharge: { amount: delAmount, currency: 'COP' },
+      timeWindowSurcharge: { amount: winAmount, currency: 'COP' },
+      discount: { amount: 0, currency: 'COP' },
+      total: { amount: total, currency: 'COP' },
+      appliedRuleIds: ['RULE_WEIGHT_TIER', 'RULE_DISTANCE_SURCHARGE', 'RULE_COMMERCIAL_VALUE_SURCHARGE', 'RULE_DELIVERY_TYPE_SURCHARGE'],
+      breakdownComponents: [
+        { componentName: 'BaseCost', description: 'Base rate per billable weight', amount: baseCost, percentage: 0, ruleApplied: `Tier ${billableKg} kg -> ${baseCost} COP` },
+        { componentName: 'DistanceSurcharge', description: 'Distance range surcharge', amount: distAmount, percentage: distPct * 100, ruleApplied: `Distance ${distKm} km -> +${distPct * 100}%` },
+        { componentName: 'CommercialValueSurcharge', description: 'Declared commercial value surcharge', amount: valAmount, percentage: valPct * 100, ruleApplied: `Commercial value -> +${valPct * 100}%` },
+        { componentName: 'DeliveryTypeSurcharge', description: 'Delivery speed multiplier', amount: delAmount, percentage: delPct * 100, ruleApplied: `Delivery type -> +${delPct * 100}%` }
+      ]
+    });
   }
 
   onSubmitShipment() {
     if (this.shipmentForm.invalid) return;
     const v = this.shipmentForm.value;
+    const q = this.liveQuote();
 
-    const req = {
-      customerId: v.customerId,
-      origin: { street: v.originStreet, city: v.originCity, state: '', zipCode: '', country: 'Colombia' },
-      destination: { street: v.destStreet, city: v.destCity, state: '', zipCode: '', country: 'Colombia' },
+    const newShipment: ShipmentDto = {
+      id: `ship-${Date.now().toString().slice(-4)}`,
+      trackingNumber: `TRK-COL-${Date.now().toString().slice(-4)}`,
+      customerId: v.customerId || 'cust-101',
+      customerName: this.getCustomerName(v.customerId || 'cust-101'),
+      originCity: v.originCity || 'Bogotá',
+      destinationCity: v.destCity || 'Medellín',
       weightKg: Number(v.weightKg),
       lengthCm: Number(v.lengthCm),
       widthCm: Number(v.widthCm),
       heightCm: Number(v.heightCm),
       commercialValue: Number(v.commercialValue),
       distanceKm: Number(v.distanceKm),
-      deliveryType: Number(v.deliveryType),
-      deliveryWindow: Number(v.deliveryWindow)
+      deliveryType: v.deliveryType === 2 ? 'SameDay' : (v.deliveryType === 1 ? 'Express' : 'Standard'),
+      deliveryWindow: 'Standard',
+      status: 'Confirmed',
+      quotedPrice: q?.total?.amount || 25000,
+      pricingVersion: q?.pricingVersion || '2026.08',
+      createdAt: new Date().toISOString(),
+      statusHistory: [
+        { id: 'h-1', status: 'Quoted', notes: `Quoted via pricing engine v${q?.pricingVersion || '2026.08'}`, changedBy: 'System', timestamp: new Date().toISOString() },
+        { id: 'h-2', status: 'Confirmed', notes: 'Shipment confirmed and registered', changedBy: 'User', timestamp: new Date().toISOString() }
+      ]
     };
 
-    const newShipment = this.apiService.createShipment(req);
+    this.shipmentsList.update(list => [newShipment, ...list]);
     this.selectedShipment.set(newShipment);
     this.activeTab.set('shipments');
   }
 
   onStatusChange(shipmentId: string, event: Event) {
     const target = event.target as HTMLSelectElement;
-    if (!target.value) return;
+    const newStatus = target.value;
+    if (!newStatus) return;
 
-    this.apiService.updateStatus(shipmentId, target.value, `Status manually updated to ${target.value}`);
+    this.shipmentsList.update(list => list.map(s => {
+      if (s.id === shipmentId) {
+        return {
+          ...s,
+          status: newStatus,
+          statusHistory: [
+            ...s.statusHistory,
+            { id: `h-${Date.now()}`, status: newStatus, notes: `Status changed to ${newStatus}`, changedBy: 'Operator', timestamp: new Date().toISOString() }
+          ]
+        };
+      }
+      return s;
+    }));
+
+    const updated = this.shipmentsList().find(s => s.id === shipmentId);
+    if (updated) this.selectedShipment.set(updated);
     target.value = '';
   }
 
-  selectShipment(s: Shipment) {
+  selectShipment(s: ShipmentDto) {
     this.selectedShipment.set(s);
     this.activeTab.set('shipments');
   }
 
   getCustomerName(id: string): string {
-    const c = this.apiService.customers().find(cust => cust.id === id);
-    return c ? c.name : id;
+    const c = this.customersList().find(cust => cust.id === id);
+    return c ? c.fullName : id;
   }
 
   getBadgeClass(status: string): string {

@@ -1,43 +1,52 @@
-name: CI Pipeline
+name: CI & Quality Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, master ]
 
 jobs:
   validate-and-test:
+    name: Build, Validate & Test
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 20
 
-      - name: Install pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 11
+          version: 9
 
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Run Gherkin AI Spec Validation
-        run: npx -y gherkin-ai@2.0.0-beta.1 validate
+      - name: Install Monorepo Dependencies
+        run: pnpm install --no-frozen-lockfile
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore Backend Dependencies
-        run: dotnet restore backend/ShippingPlatform.sln
+      - name: Run Gherkin AI Architectural Linter
+        run: pnpm ghk:validate
 
-      - name: Build Backend Solution
-        run: dotnet build backend/ShippingPlatform.sln --no-restore
+      - name: Restore & Build .NET Solution
+        run: dotnet build backend/ShippingPlatform.sln -c Release
 
-      - name: Run Backend Unit Tests
-        run: dotnet test tests/Shipping.UnitTests/Shipping.UnitTests.csproj --no-build --verbosity normal
+      - name: Run .NET Unit, Architecture & Integration Tests
+        run: dotnet test backend/ShippingPlatform.sln -c Release --no-build
+
+      - name: Build Stand-Alone Angular Frontend
+        run: pnpm build
+
+      - name: Install Playwright Browsers
+        run: pnpm --filter e2e-tests exec playwright install chromium --with-deps
+
+      - name: Run Playwright E2E Tests
+        run: pnpm e2e
