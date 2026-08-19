@@ -29,19 +29,22 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Configure Database (EF Core PostgreSQL with InMemory fallback if connection string not provided)
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=localhost;Database=shipping_db;Username=postgres;Password=postgres";
+// Configure Database (EF Core PostgreSQL with InMemory fallback for Testing / Development)
+string env = builder.Environment.EnvironmentName;
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ShippingDbContext>(options =>
 {
-    if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(builder.Configuration.GetConnectionString("DefaultConnection")))
+    if (env == "Testing" || (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(connectionString)))
     {
         options.UseInMemoryDatabase("ShippingDbInMemory");
     }
     else
     {
-        options.UseNpgsql(connectionString);
+        string conn = string.IsNullOrEmpty(connectionString)
+            ? "Host=localhost;Database=shipping_db;Username=postgres;Password=postgres"
+            : connectionString;
+        options.UseNpgsql(conn);
     }
 });
 
@@ -89,7 +92,7 @@ app.MapHealthChecks("/health/live");
 
 app.MapControllers();
 
-// Ensure DB Created (Development mode)
+// Ensure DB Created (Development & Testing modes)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ShippingDbContext>();
